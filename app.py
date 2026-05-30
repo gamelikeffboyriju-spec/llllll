@@ -50,7 +50,7 @@ TOKEN = '8672810477:AAEsM6lYByG-YjycrY3tVJMGzbB84Kj-PRU'
 OWNER_ID = 6840524720
 ADMIN_ID = 6840524720
 YOUR_USERNAME = '@BRONX_ULTRA'
-UPDATE_CHANNEL = 'https://t.me/+Jr2wn6Q5X3RjMjI1'
+UPDATE_CHANNEL = 'https://t.me/bronx_ultra_osint'
 
 A4F_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 A4F_API_KEY = "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"
