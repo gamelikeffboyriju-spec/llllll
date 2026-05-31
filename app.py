@@ -21,7 +21,7 @@ import requests
 from flask import Flask
 from threading import Thread
 
-app = Flask('')
+app = Flask(__name__)
 
 @app.route('/')
 def home():
@@ -46,7 +46,7 @@ def get_uptime():
     minutes, seconds = divmod(remainder, 60)
     return f"{days}d {hours}h {minutes}m {seconds}s"
 
-TOKEN = '8672810477:AAEsM6lYByG-YjycrY3tVJMGzbB84Kj-PRU'
+TOKEN = '8713195915:AAFb43xhEOJs9qgoE6pp5xhLzw1hBLlsqzA'
 OWNER_ID = 6840524720
 ADMIN_ID = 6840524720
 YOUR_USERNAME = '@BRONX_ULTRA'
@@ -2182,7 +2182,6 @@ if __name__ == '__main__':
                 f"Base Dir: {BASE_DIR}\nUpload Dir: {UPLOAD_BOTS_DIR}\n" +
                 f"Data Dir: {IROTECH_DIR}\nOwner ID: {OWNER_ID}\nAdmins: {admin_ids}\n" +
                 f"Start Time: {BOT_START_TIME}" + "="*40)
-    keep_alive()
     logger.info("Starting polling...")
     while True:
         try:
@@ -2193,3 +2192,6 @@ if __name__ == '__main__':
             logger.critical(f"Unrecoverable polling error: {e}", exc_info=True)
             logger.info("Restarting polling in 30s due to critical error..."); time.sleep(30)
         finally: logger.warning("Polling attempt finished. Will restart if in loop."); time.sleep(1)
+        # Sabse last line ke baad ye add karo:
+def handler(request):
+    return app(request)
