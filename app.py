@@ -18,9 +18,10 @@ import sys
 import atexit
 import requests
 
-from flask import Flask, request
+from flask import Flask, request as flask_request
 from threading import Thread
 
+# ⚡ Flask App - TOP LEVEL (Vercel ke liye zaroori)
 app = Flask(__name__)
 
 @app.route('/')
@@ -184,14 +185,12 @@ def get_user_file_count(user_id):
     return len(user_files.get(user_id, []))
 
 def check_free_user_limit(user_id):
-    """Check if free user has reached their limit"""
     if user_id in admin_ids or user_id == OWNER_ID:
         return True, None
     
     if user_id in user_subscriptions and user_subscriptions[user_id]['expiry'] > datetime.now():
         return True, None
     
-    # Free user check
     conn = sqlite3.connect(DATABASE_PATH, check_same_thread=False)
     c = conn.cursor()
     c.execute('SELECT files_uploaded, first_upload_date FROM free_user_limits WHERE user_id = ?', (user_id,))
@@ -202,7 +201,6 @@ def check_free_user_limit(user_id):
         if first_upload_date:
             first_date = datetime.fromisoformat(first_upload_date)
             if (datetime.now() - first_date).days > FREE_USER_DAYS:
-                # Reset if 30 days passed
                 c.execute('DELETE FROM free_user_limits WHERE user_id = ?', (user_id,))
                 conn.commit()
                 conn.close()
@@ -216,7 +214,6 @@ def check_free_user_limit(user_id):
     return True, None
 
 def update_free_user_upload(user_id):
-    """Update free user upload count"""
     if user_id in admin_ids or user_id == OWNER_ID:
         return
     if user_id in user_subscriptions and user_subscriptions[user_id]['expiry'] > datetime.now():
@@ -270,7 +267,6 @@ def unban_user_db(user_id):
             conn.close()
 
 def get_user_files_info(target_user_id):
-    """Get all files info for a specific user"""
     user_folder = get_user_folder(target_user_id)
     files_info = []
     
@@ -412,38 +408,6 @@ TELEGRAM_MODULES = {
     'aiogram': 'aiogram',
     'pyrogram': 'pyrogram',
     'telethon': 'telethon',
-    'telethon.sync': 'telethon',
-    'from telethon.sync import telegramclient': 'telethon',
-    'telepot': 'telepot',
-    'pytg': 'pytg',
-    'tgcrypto': 'tgcrypto',
-    'telegram_upload': 'telegram-upload',
-    'telegram_send': 'telegram-send',
-    'telegram_text': 'telegram-text',
-    'tl': 'telethon',
-    'telegram_utils': 'telegram-utils',
-    'telegram_logger': 'telegram-logger',
-    'telegram_handlers': 'python-telegram-handlers',
-    'telegram_redis': 'telegram-redis',
-    'telegram_sqlalchemy': 'telegram-sqlalchemy',
-    'telegram_payment': 'telegram-payment',
-    'telegram_shop': 'telegram-shop-sdk',
-    'pytest_telegram': 'pytest-telegram',
-    'telegram_debug': 'telegram-debug',
-    'telegram_scraper': 'telegram-scraper',
-    'telegram_analytics': 'telegram-analytics',
-    'telegram_nlp': 'telegram-nlp-toolkit',
-    'telegram_ai': 'telegram-ai',
-    'telegram_api': 'telegram-api-client',
-    'telegram_web': 'telegram-web-integration',
-    'telegram_games': 'telegram-games',
-    'telegram_quiz': 'telegram-quiz-bot',
-    'telegram_ffmpeg': 'telegram-ffmpeg',
-    'telegram_media': 'telegram-media-utils',
-    'telegram_2fa': 'telegram-twofa',
-    'telegram_crypto': 'telegram-crypto-bot',
-    'telegram_i18n': 'telegram-i18n',
-    'telegram_translate': 'telegram-translate',
     'bs4': 'beautifulsoup4',
     'requests': 'requests',
     'pillow': 'Pillow',
@@ -1442,7 +1406,8 @@ def _logic_run_all_scripts(message_or_call):
         admin_user_id = message_or_call.from_user.id
         admin_chat_id = message_or_call.chat.id
         reply_func = lambda text, **kwargs: bot.reply_to(message_or_call, text, **kwargs)
-        admin_message_obj_for_script_runner = message_or_call    elif isinstance(message_or_call, telebot.types.CallbackQuery):
+        admin_message_obj_for_script_runner = message_or_call
+    elif isinstance(message_or_call, telebot.types.CallbackQuery):
         admin_user_id = message_or_call.from_user.id
         admin_chat_id = message_or_call.message.chat.id
         bot.answer_callback_query(message_or_call.id)
@@ -2789,7 +2754,6 @@ def process_check_subscription_id(message):
         logger.error(f"Error processing check sub: {e}", exc_info=True)
         bot.reply_to(message, "Error.")
 
-# Ban/Unban Callbacks
 def ban_unban_menu_callback(call):
     bot.answer_callback_query(call.id)
     try:
@@ -2900,6 +2864,10 @@ def cleanup():
 
 atexit.register(cleanup)
 
+# ⚡ VERCEL HANDLER - TOP LEVEL (if __name__ ke bahar)
+def handler(vercel_request):
+    return app(vercel_request)
+
 if __name__ == '__main__':
     logger.info("="*40 + "\nBot Starting Up...\n" + f"Python: {sys.version.split()[0]}\n" +
                 f"Base Dir: {BASE_DIR}\nUpload Dir: {UPLOAD_BOTS_DIR}\n" +
@@ -2923,6 +2891,3 @@ if __name__ == '__main__':
         finally:
             logger.warning("Polling attempt finished. Will restart if in loop.")
             time.sleep(1)
-
-def handler(request):
-    return app(request)
